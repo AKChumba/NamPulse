@@ -1,0 +1,13 @@
+Raw rows loaded (train):                   1,600,000
+Raw rows loaded (manual test):                  498
+Removed missing / invalid-label rows:             0
+Removed tweets empty after cleaning:          2,816
+Removed repeated tweet_id:                    1,685
+Removed same-user identical re-posts:        10,884
+Kept but flagged (same text, other users):   80,082  -> column dup_group_size
+Sampled emoticon-labelled tweets:           100,000  (random, seed 42)
+
+Final rows after cleaning + dedup + sample: 100,493
+Saved to C:\Users\Alvan\Desktop\NamPulse\data\interim\cleaned.csv
+Label counts: {'positive': 50463, 'negative': 49891, 'neutral': 139}
+Label source: {'emoticon': 100000, 'manual': 493}

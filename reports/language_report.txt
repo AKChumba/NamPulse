@@ -1,0 +1,85 @@
+Total tweets: 100,493
+
+Language counts:
+language
+en     93146
+und     7208
+ru        19
+tl        17
+vi        10
+de         9
+id         9
+ro         9
+ko         6
+ms         5
+nl         5
+pt         4
+zh         4
+tr         4
+es         4
+sv         3
+ja         3
+fr         3
+th         3
+ts         2
+ar         2
+hu         2
+cs         2
+et         2
+cy         2
+da         1
+tn         1
+la         1
+uk         1
+ta         1
+mk         1
+he         1
+el         1
+st         1
+ca         1
+
+Code-switched tweets: 317
+
+Label mix by language (row %):
+label     negative  neutral  positive
+language                             
+ar           100.0      0.0       0.0
+ca           100.0      0.0       0.0
+cs            50.0      0.0      50.0
+cy            50.0      0.0      50.0
+da             0.0      0.0     100.0
+de            22.2      0.0      77.8
+el             0.0      0.0     100.0
+en            50.4      0.1      49.5
+es           100.0      0.0       0.0
+et           100.0      0.0       0.0
+fr            33.3      0.0      66.7
+he             0.0      0.0     100.0
+hu            50.0      0.0      50.0
+id            44.4      0.0      55.6
+ja            33.3      0.0      66.7
+ko             0.0      0.0     100.0
+la             0.0      0.0     100.0
+mk             0.0      0.0     100.0
+ms            80.0      0.0      20.0
+nl            20.0      0.0      80.0
+pt            50.0      0.0      50.0
+ro            11.1      0.0      88.9
+ru            15.8      0.0      84.2
+st           100.0      0.0       0.0
+sv            33.3      0.0      66.7
+ta             0.0      0.0     100.0
+th            33.3      0.0      66.7
+tl            58.8      0.0      41.2
+tn             0.0      0.0     100.0
+tr            25.0      0.0      75.0
+ts             0.0      0.0     100.0
+uk           100.0      0.0       0.0
+und           40.6      0.2      59.2
+vi            50.0      0.0      50.0
+zh            50.0      0.0      50.0
+
+Language counts, hand-labelled tweets only:
+language
+en     472
+und     21

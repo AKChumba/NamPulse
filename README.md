@@ -1,90 +1,78 @@
-# NamPulse - Data & Preprocessing (Req 1 and Req 6)
+# NamPulse
 
-Owner: Alvan Chumba. This part produces the **final cleaned dataset** the rest of the team uses.
+Group project for an NLP course: a tool that tracks public sentiment in social media posts. This repo has the
+first step, getting the data ready (cleaning it, removing duplicates and detecting the language of each post).
 
-## Use the data (teammates start here)
+The dataset is [Sentiment140](http://help.sentiment140.com/for-students), about 1.6 million tweets from
+April to June 2009. I use 100,000 random tweets from it, plus the 493 tweets that were labelled by hand.
+
+## Using the data
 
 ```python
 import pandas as pd
-df = pd.read_parquet("data/processed/nampulse_clean.parquet")   # or nampulse_clean.csv
+df = pd.read_parquet("data/processed/nampulse_clean.parquet")
 ```
 
-Dataset: **Sentiment140** (Stanford, 2009), Apr-Jun 2009. After cleaning: 100,493 tweets =
-100,000 random tweets from the 1.6M emoticon-labelled file + 493 hand-labelled tweets.
+There is also a CSV version in the same folder.
 
-| Column | Meaning | Mostly used by |
-|---|---|---|
-| `tweet_id` | unique tweet id | everyone |
-| `created_at` | timestamp, UTC (source was PDT/UTC, converted) | Req 3 / 7 (trends over time) |
-| `label` | sentiment: positive / negative / neutral | Req 2 (train/evaluate) |
-| `label_source` | `emoticon` = noisy guess from :) / :( ; `manual` = labelled by humans | Req 2 (**evaluate on `manual`**) |
-| `topic_group` | search term for `manual` tweets (e.g. nike, obama); `unknown` for the rest | Req 3 / 7 |
-| `text_raw` | original tweet, untouched (except damaged bytes) | Req 7 (show real examples) |
-| `text_clean` | HTML unescaped, URLs and @mentions removed, `#` dropped; case and emojis kept | Req 2, 3, 4 (model input) |
-| `language` | main language code (`en`, `af`, ...) or `und` (undetermined) | Req 6 / 8 |
-| `language_conf` | 0-1. For English: how clearly English beats its closest rival language. For other languages: detector confidence | Req 6 |
-| `is_english` | `language == "en"` | Req 2 / 3 |
-| `is_code_switched` | candidate flag: a second language covers 3+ words (see limitations) | Req 6 / 8 |
-| `languages_found` | languages spotted in the tweet, e.g. `en\|af` | Req 6 |
-| `other_lang_words` | words outside the main language | Req 6 |
-| `dup_group_size` | how many tweets in the full 1.6M corpus share this exact normalised text (1 = unique) | Req 4 |
-| `n_words` | word count of `text_clean` | any |
-| `text_key` | lowercase letters/digits-only version of the text, for exact-match grouping | Req 4 |
+Columns:
 
-**Important for Req 2:** the big file has only positive and negative. **Neutral exists only in the 139
-hand-labelled neutral tweets**, so a three-class model cannot be trained on this data; use binary
-sentiment for training and the `manual` rows as a trustworthy test set.
+- `tweet_id`, `created_at` (UTC)
+- `label`: positive, negative or neutral
+- `label_source`: `emoticon` or `manual` (see the notes below)
+- `topic_group`: search term for the hand-labelled tweets (like nike or obama), `unknown` for the rest
+- `text_raw`: the tweet as it was
+- `text_clean`: URLs and @mentions removed, HTML characters fixed, `#` dropped. Case and emoji are kept.
+- `language`: language code like `en`, or `und` when it can't tell
+- `language_conf`: confidence from 0 to 1
+- `is_english`: true when `language` is `en`
+- `is_code_switched`, `languages_found`, `other_lang_words`: a rough guess at tweets that mix languages
+- `dup_group_size`: how many tweets share exactly the same text (1 means it is unique)
+- `n_words`, `text_key`: word count, and a lowercase letters-and-numbers version of the text for matching duplicates
 
-## Rebuild it from scratch
+## Things to know before using it
+
+The big file only has positive and negative tweets. Neutral only shows up in the 139 hand-labelled tweets, so you
+can't train a three-way classifier on this.
+
+The 100,000 big-file labels were made automatically from smileys (:) and :( ), so they are noisy. The 493
+`manual` tweets were labelled by people, so use those for testing.
+
+Nearly everything is English (92.7%). About 7% are `und`, mostly very short tweets. Only around 150 tweets are
+detected as another language, so there isn't enough here to say anything about sentiment per language.
+
+The mixed-language flag is only a rough guess, and the flagged tweets I looked at were mostly slang or names, not
+real mixing. It did catch 3 of 4 Afrikaans/English sentences I wrote to test it. Nothing I found can detect
+Oshiwambo.
+
+The tweets are from 2009 and mostly from the US, so they say little about Namibia today.
+
+## Running it yourself
 
 ```
 python -m venv .venv
 .venv\Scripts\pip install -r requirements.txt
-.venv\Scripts\python src\01_download.py          # data/raw/*   (80 MB download)
-.venv\Scripts\python src\02_clean.py             # data/interim/cleaned.csv  + reports/cleaning_log.txt
-.venv\Scripts\python src\03_detect_language.py   # data/processed/*  + reports/language_report.txt  (10-15 min)
+.venv\Scripts\python src\01_download.py
+.venv\Scripts\python src\02_clean.py
+.venv\Scripts\python src\03_detect_language.py
 ```
 
-Notebooks in `notebooks/` (01 download+explore, 02 cleaning+dedup, 03 language detection) run the same scripts and
-show the results with tables and charts - open them in VS Code or `jupyter notebook`. Notebook 03 loads the saved
-result by default (set `RERUN = True` in its first cell to redo the 10-15 minute detection).
+The first script downloads about 80 MB. The last one takes 10 to 15 minutes. The raw and in-between files are
+not in the repo, but the scripts recreate them.
 
-`data/raw` and `data/interim` are git-ignored (re-created by the scripts); `data/processed` is committed.
-To use more (or all) of the 1.6M tweets, change `SAMPLE_SIZE` in `src/02_clean.py` (language detection then takes
-correspondingly longer).
+The notebooks in `notebooks/` go through the same three steps with tables and charts. Notebook 3 loads the saved
+result unless you set `RERUN = True` in its first cell.
 
-## What the pipeline does
+## What the scripts do
 
-1. **Download** - raw files saved untouched in `data/raw/`.
-2. **Clean** - read as UTF-8 (the file has about 12,000 damaged bytes in the source; those are dropped),
-   parse dates to UTC, tidy text (see table). Original kept in `text_raw`.
-3. **De-duplicate** - removed 1,685 repeated `tweet_id`s and 10,884 identical re-posts by the same user.
-   Identical text from *different* users is **kept and flagged** (`dup_group_size`, 80,082 rows in the full
-   corpus) because Req 4 (similarity index) needs to see repeated / coordinated messaging.
-   Near-duplicates (not exact) are left for Req 4.
-4. **Sample** - 100,000 random tweets from the big file (seed 42) + all hand-labelled tweets.
-5. **Language detection** - Lingua library, all 75 languages (a short list mislabelled Indonesian/Tagalog as
-   African languages). Result on the 100,493 tweets: **92.7% `en`, 7.2% `und`, about 150 tweets (0.15%) in
-   ~35 other languages** (Russian, Tagalog, Vietnamese, German, Indonesian, ...), and 317 code-switch candidates.
-   Full table: `reports/language_report.txt`.
+1. `01_download.py` downloads the raw files into `data/raw`.
+2. `02_clean.py` cleans the text and removes duplicates: tweets stored twice (same id) and the same user posting
+   the same text again. Together with tweets that were empty once links and mentions were removed, that drops
+   about 15,000 tweets. Identical text from different users is kept and only counted in `dup_group_size`, since
+   repeated messages might matter later. The script then takes the 100,000 sample. Change `SAMPLE_SIZE` at the
+   top to use more.
+3. `03_detect_language.py` detects the language with the [Lingua](https://github.com/pemistahl/lingua-py)
+   library. Lingua struggles with very short informal tweets, so when another language wins only weakly, English
+   is tested against that language one-on-one. Anything still unclear is marked `und`.
 
-## Limitations (please read - useful for the Req 8 bias note)
-
-- **Mostly English.** Only a small fraction of tweets are other languages (Vietnamese, Indonesian, Spanish,
-  Portuguese, ...). There is essentially **no Afrikaans/Oshiwambo** here, so Req 6 can only be shown properly
-  on the Namibia stretch-goal sample. The detector was checked on hand-written English/Afrikaans mixes:
-  it caught 3 of 4 (and correctly left a plain-English control alone).
-- **Emoticon labels are noisy.** Sentiment140's big file was labelled automatically from :) and :(, not by
-  people. Trust the `manual` rows for evaluation.
-- **Code-switch flag is a candidate flag, not ground truth.** Tuned for precision, but the ones I checked
-  by eye on this data were mostly false alarms (slang like "yayyy", names). Review manually before reporting numbers.
-- **Oshiwambo is not supported** by Lingua or any common detector; it will appear as `und` or a wrong
-  language. Needs a small keyword list or manual labelling if local data is collected.
-- **`und` (7.2%) is mostly very short or noisy tweets**, not foreign language (median 3 words vs 12 for
-  English; 45% have under 3 words). Short real non-English tweets also end up as `und` (we prefer "unknown"
-  to a wrong guess). `und` tweets are 59% positive vs 50% for English, so keep them separate when reporting.
-- **Per-language sentiment for non-English is not meaningful yet**: most languages have fewer than 20 tweets.
-- **Bias:** US-centric English Twitter from 2009 (a very different user base from Namibia today),
-  one platform, tweets are only from ~50 distinct days, and the class balance (50/50) was set by the
-  collection method, not by real-world sentiment.
-- Usernames were dropped after de-duplication (privacy); `text_raw` may still contain @mentions.
+The Sentiment140 file has about 12,000 damaged characters in it that can't be recovered, so those are dropped.

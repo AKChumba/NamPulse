@@ -57,10 +57,10 @@ python -m venv .venv
 .venv\Scripts\python src\03_detect_language.py
 ```
 
-The first script downloads about 80 MB. The last one takes 10 to 15 minutes. The raw and in-between files are
+The first script downloads about 80 MB. The third one takes 10 to 15 minutes. The raw and in-between files are
 not in the repo, but the scripts recreate them.
 
-The notebooks in `notebooks/` go through the same three steps with tables and charts. Notebook 3 loads the saved
+The notebooks in `notebooks/` go through the same steps with tables and charts. Notebook 3 loads the saved
 result unless you set `RERUN = True` in its first cell.
 
 ## What the scripts do
@@ -76,3 +76,58 @@ result unless you set `RERUN = True` in its first cell.
    is tested against that language one-on-one. Anything still unclear is marked `und`.
 
 The Sentiment140 file has about 12,000 damaged characters in it that can't be recovered, so those are dropped.
+
+## Transformer classifier and explanations (Req 2b, part of Req 7)
+
+Two transformer models, both evaluated on the hand-labelled tweets:
+
+- **Model A, `cardiffnlp/twitter-roberta-base-sentiment-latest`** (main model). RoBERTa that was already trained on
+  millions of tweets and fine-tuned for negative / neutral / positive. We use it as it is. It is the only model we have
+  that can say neutral, because our big file has no neutral tweets to train on.
+- **Model B, `distilbert-base-uncased` fine-tuned by us** on 20,000 emoticon-labelled tweets (positive / negative
+  only). This shows whether training on our own noisy labels helps.
+
+For the comparison with the classical model (Req 2a), both are also scored on the 354 hand-labelled positive/negative
+tweets.
+
+Every label can be explained word by word with Integrated Gradients: each word gets a score for how much it pushed the
+tweet towards the predicted label. `src/nampulse_transformer.py` has the helpers the dashboard can import:
+
+```python
+import sys; sys.path.insert(0, "src")
+from nampulse_transformer import load_model, predict, explain, to_html
+tok, model = load_model("cardiffnlp/twitter-roberta-base-sentiment-latest")
+predict(["the water is off again"], tok, model)      # list of (label, confidence)
+explain("the water is off again", tok, model)        # label, probabilities and a score per word
+```
+
+Run it (a GPU makes a big difference; notebook 4 runs on Google Colab with *Runtime -> T4 GPU*):
+
+```
+.venv\Scripts\python src\04_transformer_pretrained.py      (100k tweets: ~3 min GPU, ~1 hour CPU; add --limit 5000 to test)
+.venv\Scripts\python src\05_transformer_finetune.py        (~5 min GPU; on CPU use --n-train 4000 --epochs 1)
+.venv\Scripts\python src\06_transformer_explain.py         (~2 min GPU, ~20 min CPU)
+```
+
+The models are downloaded from Hugging Face the first time (about 500 MB and 250 MB).
+
+Outputs:
+
+- `data/processed/transformer_predictions.parquet`: `tweet_id`, `tf_label`, `tf_confidence`, `p_negative`,
+  `p_neutral`, `p_positive` (model A). Join on `tweet_id`.
+- `data/processed/transformer_explanations.jsonl`: word scores for each hand-labelled tweet, ready for highlighting.
+- `reports/transformer_*`: results, confusion matrix, training curve, top words, and highlighted examples
+  (`transformer_explanations.html`).
+- `models/distilbert-nampulse/`: the fine-tuned model B (not in git, too big; `src/05` recreates it).
+
+Things to know:
+
+- The `emoticon` labels are only used to train model B and as a rough agreement check. Accuracy numbers come from the
+  `manual` tweets only.
+- For model B, each distinct text is used once and texts that are also in the hand-labelled set are removed, so the
+  test tweets are never seen in training.
+- The explanations start from a tweet where every word is replaced by `<mask>`. We use `<mask>` instead of `<pad>`
+  because RoBERTa gives `<pad>` tokens special positions. With `<pad>` the word scores did not add up to the change
+  in the model's output.
+- `src/06` also checks the Integrated Gradients scores against a simpler test: remove one word and see how much the
+  prediction changes.

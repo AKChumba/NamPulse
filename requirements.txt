@@ -6,3 +6,9 @@ matplotlib>=3.8
 nbformat>=5.10
 nbconvert>=7.16
 ipykernel>=6.29
+# Transformer classifier (src/04-06). On Windows without a GPU, pip installs the CPU build of torch.
+torch>=2.2
+transformers>=4.40
+scikit-learn>=1.4
+scipy>=1.11
+captum>=0.7

@@ -131,3 +131,16 @@ Things to know:
   in the model's output.
 - `src/06` also checks the Integrated Gradients scores against a simpler test: remove one word and see how much the
   prediction changes.
+
+### Results (hand-labelled tweets)
+
+| Model | Pos/neg accuracy (354) | Pos/neg macro-F1 | 3-class accuracy (493) | 3-class macro-F1 |
+|---|---|---|---|---|
+| A: Twitter-RoBERTa (pretrained) | 0.927 | 0.926 | 0.868 | 0.866 |
+| B: DistilBERT (fine-tuned on 20k emoticon tweets) | 0.859 | 0.859 | - | - |
+
+Model A is better on the same test tweets (McNemar exact test, p ≈ 0.0007). Tweets where model A's confidence is
+below 0.6 (9% of them) are only about 50% accurate, so the dashboard should mark them as uncertain.
+
+Known limitation: the Integrated Gradients word scores add up correctly for 415 of the 493 explained tweets
+(`ig_delta` ≤ 0.05). For the other 78 they are approximate.

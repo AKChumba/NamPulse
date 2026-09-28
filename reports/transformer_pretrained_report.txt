@@ -1,0 +1,56 @@
+Model: cardiffnlp/twitter-roberta-base-sentiment-latest   device: cuda
+Model classes: ['negative', 'neutral', 'positive']
+Scoring 100,493 tweets (493 hand-labelled + 100,000 emoticon) ...
+Done in 3.9 min (428 tweets/sec)
+
+=== 1. Hand-labelled tweets (3 classes) ===
+n = 493   {'positive': 179, 'negative': 175, 'neutral': 139}
+Accuracy: 0.868   Macro-F1: 0.866
+              precision    recall  f1-score   support
+
+    negative      0.935     0.829     0.879       175
+     neutral      0.825     0.849     0.837       139
+    positive      0.846     0.922     0.882       179
+
+    accuracy                          0.868       493
+   macro avg      0.869     0.866     0.866       493
+weighted avg      0.872     0.868     0.868       493
+
+Confusion matrix (rows = true, columns = predicted):
+          negative  neutral  positive
+negative       145       14        16
+neutral          7      118        14
+positive         3       11       165
+
+=== 2. Hand-labelled tweets, positive vs negative (comparable with Req 2a) ===
+n = 354   Accuracy: 0.927   Macro-F1: 0.926
+              precision    recall  f1-score   support
+
+    negative      0.957     0.891     0.923       175
+    positive      0.901     0.961     0.930       179
+
+    accuracy                          0.927       354
+   macro avg      0.929     0.926     0.926       354
+weighted avg      0.928     0.927     0.926       354
+
+
+=== 3. Emoticon-labelled tweets (noisy labels - agreement, not accuracy) ===
+n = 100,000   agreement (pos vs neg): 0.774
+Model's 3-class labels on these tweets (%):
+tf_label
+positive    39.6
+negative    34.1
+neutral     26.3
+
+Agreement by detected language (Req 6 - how non-English text is handled):
+        tweets  agreement  avg_confidence
+lang                                     
+en     92674.0      0.774           0.782
+other    139.0      0.590           0.797
+und     7187.0      0.782           0.754
+
+Agreement for tweets flagged as code-switched vs not:
+                   tweets  agreement
+is_code_switched                    
+False             99683.0      0.775
+True                317.0      0.688

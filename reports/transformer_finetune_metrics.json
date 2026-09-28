@@ -1,0 +1,28 @@
+{
+  "base_model": "distilbert-base-uncased",
+  "device": "cuda",
+  "n_train": 20000,
+  "n_val": 2000,
+  "epochs": 2,
+  "lr": 2e-05,
+  "batch_size": 32,
+  "max_len": 64,
+  "train_minutes": 3.1,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.4720950524568558,
+      "val_accuracy": 0.803
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.33132006781101225,
+      "val_accuracy": 0.8135
+    }
+  ],
+  "manual_binary": {
+    "n": 354,
+    "accuracy": 0.8588,
+    "macro_f1": 0.8586
+  }
+}

@@ -1,0 +1,10 @@
+Explaining 493 hand-labelled tweets with Integrated Gradients (cardiffnlp/twitter-roberta-base-sentiment-latest)
+Saved 493 explanations -> /content/NamPulse/data/processed/transformer_explanations.jsonl
+IG completeness gap (ig_delta): median 0.0070, max 13.9207  (small = attributions add up correctly)
+
+Words that most strongly support each predicted label (mean IG score, seen >= 3 times):
+  negative: sad (+1.00), worst (+1.00), sucks (+0.95), stupid (+0.89), cant (+0.81), wtf (+0.80), won't (+0.79), why (+0.78), fucking (+0.77), fail (+0.73), suck (+0.72), hate (+0.72)
+   neutral: post (+0.85), playing (+0.78), san (+0.71), safeway (+0.67), book (+0.66), then (+0.66), bill (+0.66), rt (+0.62), twitter (+0.61), api (+0.61), att (+0.59), css (+0.57)
+  positive: amazing (+1.00), can't (+1.00), fun (+1.00), rock (+0.99), yay (+0.96), excited (+0.94), awesome (+0.92), loving (+0.91), d (+0.89), great (+0.87), good (+0.86), enjoy (+0.82)
+
+IG vs occlusion on 30 tweets: mean Spearman rho 0.61, same most-important word in 50% of tweets

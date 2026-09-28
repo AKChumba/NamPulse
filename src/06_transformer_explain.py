@@ -63,8 +63,10 @@ with open(OUT, "w", encoding="utf-8") as f:
     for r in records:
         f.write(json.dumps(r, ensure_ascii=False) + "\n")
 log(f"Saved {len(records)} explanations -> {OUT}")
-log(f"IG completeness gap (ig_delta): median {np.median([r['ig_delta'] for r in records]):.4f}, "
-    f"max {max(r['ig_delta'] for r in records):.4f}  (small = attributions add up correctly)")
+deltas = np.array([r['ig_delta'] for r in records])
+log(f"IG completeness gap (ig_delta): median {np.median(deltas):.4f}, max {deltas.max():.4f}, "
+    f"above 0.05 for {(deltas > 0.05).sum()} of {len(deltas)} tweets  (small = scores add up correctly)")
+log(f"Tweets that needed more than 50 IG steps: {sum(r['ig_steps'] > 50 for r in records)}")
 
 # ---------- Global view: which words push towards each label? ----------
 rows = []

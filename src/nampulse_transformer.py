@@ -88,7 +88,7 @@ def _tokens_to_words(text, offsets):
     return words, owner
 
 
-def explain(text, tok, model, target=None, n_steps=50):
+def explain(text, tok, model, target=None, n_steps=50, max_delta=0.05):
     """Integrated Gradients word attributions for one text.
 
     Returns a dict: label, confidence, probs {class: p}, words [(word, score), ...].
@@ -126,9 +126,14 @@ def explain(text, tok, model, target=None, n_steps=50):
         return model(input_ids=ids, attention_mask=attn).logits
 
     lig = LayerIntegratedGradients(forward, model.get_input_embeddings())
-    attr, delta = lig.attribute(inputs=input_ids, baselines=baseline, target=target,
-                                additional_forward_args=(mask,), n_steps=n_steps,
-                                internal_batch_size=n_steps, return_convergence_delta=True)
+    # IG approximates an integral with n_steps points. For a few tweets 50 points are not
+    # enough (the scores don't add up: large ig_delta), so we retry with more points.
+    for steps in (n_steps, n_steps * 4, n_steps * 8):
+        attr, delta = lig.attribute(inputs=input_ids, baselines=baseline, target=target,
+                                    additional_forward_args=(mask,), n_steps=steps,
+                                    internal_batch_size=50, return_convergence_delta=True)
+        if delta.abs().item() <= max_delta:
+            break
     token_scores = attr.sum(dim=-1)[0].detach().cpu().numpy()   # one number per token
 
     words, owner = _tokens_to_words(text, offsets)
@@ -145,6 +150,7 @@ def explain(text, tok, model, target=None, n_steps=50):
             # completeness check: raw scores should add up to (score of input - score of
             # baseline); ig_delta is the gap. Near 0 = enough steps were used.
             "ig_delta": round(float(delta.abs().item()), 4),
+            "ig_steps": steps,
             "words": [(w, round(float(s), 4)) for (w, _, _), s in zip(words, word_scores)]}
 
 
